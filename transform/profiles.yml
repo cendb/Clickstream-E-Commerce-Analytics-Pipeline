@@ -1,0 +1,8 @@
+clickstream_transform:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      # This points to the persistent DuckDB file in your data folder
+      path: ../data/warehouse.duckdb
+      threads: 4

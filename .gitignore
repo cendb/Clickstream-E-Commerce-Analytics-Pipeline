@@ -1,0 +1,26 @@
+# Data 
+data/raw/*
+!data/raw/.gitkeep
+
+# Database files
+data/*.duckdb
+data/*.duckdb.wal
+
+# dbt artifacts
+**/target/
+**/dbt_packages/
+**/logs/
+
+# Python environments & cache
+venv/
+.venv/
+env/
+__pycache__/
+*.pyc
+
+# Streamlit config & cache
+.streamlit/
+
+# OS files
+.DS_Store
+Thumbs.db

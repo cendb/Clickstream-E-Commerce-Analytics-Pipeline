@@ -1,0 +1,30 @@
+name: 'clickstream_transform'
+version: '1.0.0'
+config-version: 2
+
+# This must match the name in profiles.yml
+profile: 'clickstream_transform'
+
+model-paths: ["models"]
+analysis-paths: ["analyses"]
+test-paths: ["tests"]
+seed-paths: ["seeds"]
+macro-paths: ["macros"]
+snapshot-paths: ["snapshots"]
+
+clean-targets:
+  - "target"
+  - "dbt_packages"
+
+# Define how our models will be built in DuckDB
+models:
+  clickstream_transform:
+    bronze:
+     # Bronze can be lightweight views directly over Parquet files
+      +materialized: view 
+    silver:
+     # Silver cleans and materializes the data
+      +materialized: view 
+     # Gold serves optimized tables for our dashboard
+    gold:
+      +materialized: view
