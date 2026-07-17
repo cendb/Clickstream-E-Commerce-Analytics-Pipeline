@@ -122,3 +122,5 @@ GROUP BY 1, 2, 5
 2. **Load:** [DuckDB Target Store](ingestion/clickstream.db)
 3. **Transform:** [dbt Models Directory](transform/models)
 
+## Dashboard
+![Dashboard](Dashboard.png)
