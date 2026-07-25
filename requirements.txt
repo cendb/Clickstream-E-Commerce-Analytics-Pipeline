@@ -1,5 +1,10 @@
-confluent-kafka>=2.2.0,<3.0.0
-pandas>=2.0.0
-pyarrow>=12.0.0
-duckdb>=1.0.0
-streamlit>=1.25.0
+confluent-kafka
+pandas
+pyarrow
+duckdb
+streamlit
+dbt-core
+dbt-duckdb
+plotly
+faker
+python-dotenv

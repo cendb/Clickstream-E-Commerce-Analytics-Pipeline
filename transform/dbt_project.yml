@@ -28,3 +28,6 @@ models:
      # Gold serves optimized tables for our dashboard
     gold:
       +materialized: view
+
+vars:
+  raw_data_path: '../ingestion/data/raw/*.parquet'

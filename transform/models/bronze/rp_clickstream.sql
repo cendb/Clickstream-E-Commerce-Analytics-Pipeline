@@ -6,4 +6,4 @@ SELECT
     event_type,
     device,
     timestamp
-FROM read_parquet('../data/raw/*.parquet')
+FROM read_parquet('../ingestion/data/raw/*.parquet')
