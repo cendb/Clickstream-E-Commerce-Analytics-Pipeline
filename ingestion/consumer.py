@@ -4,25 +4,31 @@ import json
 import pandas as pd
 import pyarrow as pa
 import pyarrow.parquet as pq
+from dotenv import load_dotenv
 from confluent_kafka import Consumer, KafkaError, KafkaException
 
-# Configuration
-KAFKA_BOOTSTRAP_SERVERS = "localhost:9092"
-KAFKA_TOPIC = "live_clicks"
-CONSUMER_GROUP = "lakehouse-loader"
+load_dotenv()
+
+KAFKA_TOPIC = os.getenv('KAFKA_TOPIC', 'clickstream_events')
+CONSUMER_GROUP = os.getenv('KAFKA_CONSUMER_GROUP', 'lakehouse-loader')
 RAW_DATA_DIR = "data/raw"
 
 # Batching Configuration
-BATCH_SIZE_LIMIT = 500       # Maximum number of messages per Parquet file
-BATCH_TIME_LIMIT = 5.0       # Maximum seconds to wait before writing a file
+BATCH_SIZE_LIMIT = 500     
+BATCH_TIME_LIMIT = 5.0     
 
-# Initialize Kafka Consumer
+# Build Aiven Kafka configuration using environment variables
 consumer_config = {
-    'bootstrap.servers': KAFKA_BOOTSTRAP_SERVERS,
+    'bootstrap.servers': os.getenv('KAFKA_BOOTSTRAP_SERVERS'),
+    'security.protocol': os.getenv('KAFKA_SECURITY_PROTOCOL', 'SASL_SSL'),
+    'sasl.mechanism': os.getenv('KAFKA_SASL_MECHANISM', 'SCRAM-SHA-256'),
+    'sasl.username': os.getenv('KAFKA_SASL_USERNAME'),
+    'sasl.password': os.getenv('KAFKA_SASL_PASSWORD'),
     'group.id': CONSUMER_GROUP,
-    'auto.offset.reset': 'earliest',  # Start reading from the beginning if no offset exists
-    'enable.auto.commit': False       # We will commit manually after writing the Parquet file (At-Least-Once guarantee)
+    'auto.offset.reset': 'earliest',  
+    'enable.auto.commit': False      
 }
+
 consumer = Consumer(consumer_config)
 consumer.subscribe([KAFKA_TOPIC])
 
@@ -31,26 +37,19 @@ def save_batch_to_parquet(events):
     if not events:
         return
     
-    # 1. Convert list of JSON objects to a Pandas DataFrame
     df = pd.DataFrame(events)
-    
-    # 2. Convert DataFrame to PyArrow Table
     table = pa.Table.from_pandas(df)
     
-    # 3. Generate a unique filename using a microsecond timestamp
     timestamp_str = pd.Timestamp.now().strftime("%Y%m%d_%H%M%S_%f")
     filename = f"clickstream_{timestamp_str}.parquet"
     filepath = os.path.join(RAW_DATA_DIR, filename)
-    
-    # Ensure raw directory exists
     os.makedirs(RAW_DATA_DIR, exist_ok=True)
     
-    # 4. Write optimized, Snappy-compressed Parquet file
     pq.write_table(table, filepath, compression="snappy")
     print(f"Successfully saved {len(events)} events to: {filepath}")
 
 def main():
-    print(f"Consumer started. Listening to '{KAFKA_TOPIC}'...")
+    print(f"Consumer started. Listening to cloud topic '{KAFKA_TOPIC}'...")
     
     buffer = []
     last_flush_time = time.time()
@@ -89,7 +88,7 @@ def main():
     except KeyboardInterrupt:
         print("\nStopping consumer process...")
     finally:
-        # Save any remaining events in the buffer before exiting
+    
         if buffer:
             save_batch_to_parquet(buffer)
             consumer.commit(asynchronous=False)
